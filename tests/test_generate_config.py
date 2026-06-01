@@ -30,6 +30,7 @@ def test_generate_gateway_config(tmp_path: Path) -> None:
         api_base_url="http://api.test",
         ingest_token="tok",
         firmware_version="0.1.0",
+        firmware_serial_tag="beeplan-Gateway-0.1.0",
     )
     out = (include / "config.h").read_text(encoding="utf-8")
     assert 'WIFI_SSID "net"' in out
@@ -48,6 +49,8 @@ def test_generate_edge_config(tmp_path: Path) -> None:
         gateway_mac="11:22:33:44:55:66",
         device_public_id="edge-abc",
         wake_interval_sec=600,
+        firmware_version="0.1.0",
+        firmware_serial_tag="beeplan-Edge-0.1.0",
     )
     out = (include / "config.h").read_text(encoding="utf-8")
     assert "0x11, 0x22" in out

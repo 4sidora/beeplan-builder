@@ -36,6 +36,7 @@ def generate_gateway_config(
     api_base_url: str,
     ingest_token: str,
     firmware_version: str,
+    firmware_serial_tag: str,
 ) -> None:
     render_template(
         firmware_dir / "include" / "config.h.in",
@@ -46,6 +47,7 @@ def generate_gateway_config(
             "API_BASE_URL": _escape_c_string(api_base_url.rstrip("/")),
             "INGEST_TOKEN": _escape_c_string(ingest_token),
             "FIRMWARE_VERSION": _escape_c_string(firmware_version),
+            "FIRMWARE_SERIAL_TAG": _escape_c_string(firmware_serial_tag),
         },
     )
 
@@ -56,6 +58,8 @@ def generate_edge_config(
     gateway_mac: str,
     device_public_id: str,
     wake_interval_sec: int,
+    firmware_version: str,
+    firmware_serial_tag: str,
 ) -> None:
     render_template(
         firmware_dir / "include" / "config.h.in",
@@ -64,5 +68,7 @@ def generate_edge_config(
             "GATEWAY_MAC_BYTES": mac_to_byte_list(gateway_mac),
             "DEVICE_PUBLIC_ID": _escape_c_string(device_public_id),
             "WAKE_INTERVAL_SEC": str(int(wake_interval_sec)),
+            "FIRMWARE_VERSION": _escape_c_string(firmware_version),
+            "FIRMWARE_SERIAL_TAG": _escape_c_string(firmware_serial_tag),
         },
     )

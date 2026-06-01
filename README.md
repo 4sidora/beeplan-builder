@@ -19,3 +19,10 @@ docker run --rm -p 9000:9000 -e BEEPLAN_BUILDER_SECRET=dev-builder-secret beepla
 - `GET /v1/builds/{id}/manifest.json`
 
 Вызывается из **beeplan-api**, не напрямую из браузера.
+
+## Поддерживаемые платы (`board`)
+
+| `board` | MCU | PlatformIO env | esp-web-tools `chipFamily` |
+|---------|-----|----------------|----------------------------|
+| `esp32dev` | ESP32 (classic) | `esp32dev` | `ESP32` |
+| `esp32c3` | ESP32-C3 | `esp32c3` | `ESP32-C3` |

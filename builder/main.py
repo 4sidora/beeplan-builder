@@ -50,7 +50,7 @@ class EdgeBuildConfig(BaseModel):
 class BuildRequest(BaseModel):
     build_id: str = Field(min_length=1, max_length=64)
     profile: str = Field(pattern="^(gateway|edge)$")
-    board: str = Field(default="esp32dev", max_length=32)
+    board: str = Field(default="esp32dev", pattern="^(esp32dev|esp32c3|esp32c3-usb)$")
     gateway_config: GatewayBuildConfig | None = None
     edge_config: EdgeBuildConfig | None = None
 
@@ -97,6 +97,25 @@ def _run_build(build_id: str, body: BuildRequest) -> None:
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/v1/releases")
+def firmware_releases() -> dict[str, str]:
+    from builder.firmware_versions import (
+        EDGE_SERIAL_TAG,
+        EDGE_VERSION,
+        FIRMWARE_VERSION,
+        GATEWAY_SERIAL_TAG,
+        GATEWAY_VERSION,
+    )
+
+    return {
+        "firmware_version": FIRMWARE_VERSION,
+        "gateway_version": GATEWAY_VERSION,
+        "edge_version": EDGE_VERSION,
+        "gateway_serial_tag": GATEWAY_SERIAL_TAG,
+        "edge_serial_tag": EDGE_SERIAL_TAG,
+    }
 
 
 @app.post("/v1/builds", response_model=BuildStatusOut, status_code=status.HTTP_202_ACCEPTED)
