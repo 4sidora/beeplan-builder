@@ -30,11 +30,12 @@ RUN cd /firmware/gateway && cp include/config.h.example include/config.h \
     && pio run -e esp32dev && pio run -e esp32c3
 
 ENV BEEPLAN_ARTIFACTS_DIR=/artifacts
+ENV BEEPLAN_WORKDIR=/workdir
 ENV BEEPLAN_FIRMWARE_EDGE=/firmware/edge
 ENV BEEPLAN_FIRMWARE_GATEWAY=/firmware/gateway
 ENV BEEPLAN_BUILDER_SECRET=dev-builder-secret
 
-RUN mkdir -p /artifacts
+RUN mkdir -p /artifacts /workdir
 
 EXPOSE 9000
 

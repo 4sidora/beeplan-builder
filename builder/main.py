@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import threading
-import uuid
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
@@ -13,16 +12,18 @@ from typing import Any
 from fastapi import FastAPI, Header, HTTPException, status
 from pydantic import BaseModel, Field
 
-from builder.compile import compile_firmware
+from builder.compile import DEFAULT_WORKDIR, BuildPhase, BuildProgressUpdate, compile_firmware
 
 ARTIFACTS_DIR = Path(os.environ.get("BEEPLAN_ARTIFACTS_DIR", "/artifacts"))
 FIRMWARE_EDGE_DIR = Path(os.environ.get("BEEPLAN_FIRMWARE_EDGE", "/firmware/edge"))
 FIRMWARE_GATEWAY_DIR = Path(os.environ.get("BEEPLAN_FIRMWARE_GATEWAY", "/firmware/gateway"))
 BUILDER_SECRET = os.environ.get("BEEPLAN_BUILDER_SECRET", "dev-builder-secret")
+WORKDIR_ROOT = Path(os.environ.get("BEEPLAN_WORKDIR", str(DEFAULT_WORKDIR)))
 
 app = FastAPI(title="BeePlan Builder", version="0.1.0")
 
 _build_lock = threading.Lock()
+_compile_lock = threading.Lock()
 _builds: dict[str, dict[str, Any]] = {}
 
 
@@ -61,6 +62,10 @@ class BuildStatusOut(BaseModel):
     error: str | None = None
     created_at: str
     finished_at: str | None = None
+    updated_at: str | None = None
+    phase: BuildPhase | None = None
+    log_tail: list[str] | None = None
+    progress_pct: int | None = None
 
 
 def _verify_secret(authorization: str | None) -> None:
@@ -71,27 +76,70 @@ def _verify_secret(authorization: str | None) -> None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid builder token")
 
 
+def _apply_progress(build_id: str, update: BuildProgressUpdate) -> None:
+    with _build_lock:
+        row = _builds.get(build_id)
+        if row is None:
+            return
+        row["phase"] = update.phase.value
+        row["log_tail"] = update.log_tail
+        row["progress_pct"] = update.progress_pct
+        row["updated_at"] = update.updated_at
+
+
 def _run_build(build_id: str, body: BuildRequest) -> None:
     artifact_dir = ARTIFACTS_DIR / build_id
     try:
         with _build_lock:
             _builds[build_id]["status"] = BuildStatus.building
-        compile_firmware(
-            profile=body.profile,
-            board=body.board,
-            artifact_dir=artifact_dir,
-            firmware_roots={"edge": FIRMWARE_EDGE_DIR, "gateway": FIRMWARE_GATEWAY_DIR},
-            gateway_config=body.gateway_config.model_dump() if body.gateway_config else None,
-            edge_config=body.edge_config.model_dump() if body.edge_config else None,
-        )
+            _builds[build_id]["phase"] = BuildPhase.preparing.value
+            _builds[build_id]["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+        with _compile_lock:
+            compile_firmware(
+                profile=body.profile,
+                board=body.board,
+                artifact_dir=artifact_dir,
+                firmware_roots={"edge": FIRMWARE_EDGE_DIR, "gateway": FIRMWARE_GATEWAY_DIR},
+                gateway_config=body.gateway_config.model_dump() if body.gateway_config else None,
+                edge_config=body.edge_config.model_dump() if body.edge_config else None,
+                workdir_root=WORKDIR_ROOT,
+                on_progress=lambda u: _apply_progress(build_id, u),
+            )
         with _build_lock:
             _builds[build_id]["status"] = BuildStatus.ready
             _builds[build_id]["finished_at"] = datetime.now(timezone.utc).isoformat()
+            _builds[build_id]["phase"] = BuildPhase.packaging.value
+            _builds[build_id]["progress_pct"] = 100
+            _builds[build_id]["updated_at"] = datetime.now(timezone.utc).isoformat()
     except Exception as exc:  # noqa: BLE001 — surface builder error to API
+        log_tail: list[str] = []
+        log_path = artifact_dir / "build.log"
+        if log_path.is_file():
+            lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+            log_tail = lines[-40:]
         with _build_lock:
             _builds[build_id]["status"] = BuildStatus.failed
             _builds[build_id]["error"] = str(exc)
             _builds[build_id]["finished_at"] = datetime.now(timezone.utc).isoformat()
+            _builds[build_id]["log_tail"] = log_tail
+            _builds[build_id]["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+
+def _row_to_out(build_id: str, row: dict[str, Any]) -> BuildStatusOut:
+    phase_raw = row.get("phase")
+    phase = BuildPhase(phase_raw) if phase_raw in BuildPhase._value2member_map_ else None
+    return BuildStatusOut(
+        build_id=build_id,
+        status=row["status"],
+        error=row.get("error"),
+        created_at=row["created_at"],
+        finished_at=row.get("finished_at"),
+        updated_at=row.get("updated_at"),
+        phase=phase,
+        log_tail=row.get("log_tail"),
+        progress_pct=row.get("progress_pct"),
+    )
 
 
 @app.get("/health")
@@ -138,11 +186,15 @@ def create_build(
             "error": None,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "finished_at": None,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "phase": None,
+            "log_tail": None,
+            "progress_pct": None,
         }
 
     thread = threading.Thread(target=_run_build, args=(build_id, body), daemon=True)
     thread.start()
-    return BuildStatusOut(build_id=build_id, status=BuildStatus.queued, created_at=_builds[build_id]["created_at"])
+    return _row_to_out(build_id, _builds[build_id])
 
 
 @app.get("/v1/builds/{build_id}", response_model=BuildStatusOut)
@@ -152,13 +204,7 @@ def get_build(build_id: str, authorization: str | None = Header(default=None)) -
         row = _builds.get(build_id)
     if row is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Build not found")
-    return BuildStatusOut(
-        build_id=build_id,
-        status=row["status"],
-        error=row.get("error"),
-        created_at=row["created_at"],
-        finished_at=row.get("finished_at"),
-    )
+    return _row_to_out(build_id, row)
 
 
 ALLOWED_ARTIFACTS = frozenset(
