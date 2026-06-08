@@ -41,18 +41,24 @@ def test_generate_edge_config(tmp_path: Path) -> None:
     include = tmp_path / "include"
     include.mkdir()
     (include / "config.h.in").write_text(
-        "MAC={ {{GATEWAY_MAC_BYTES}} }\nID={{DEVICE_PUBLIC_ID}}\nSEC={{WAKE_INTERVAL_SEC}}\n",
+        "MAC={ {{GATEWAY_MAC_BYTES}} }\nID={{DEVICE_PUBLIC_ID}}\nSEC={{WAKE_INTERVAL_SEC}}\n"
+        "SLOT={{TELEMETRY_SLOT_SEC}}\nCH={{GATEWAY_WIFI_CHANNEL}}\nDT={{DEVICE_TYPE}}\n",
         encoding="utf-8",
     )
     generate_edge_config(
         tmp_path,
         gateway_mac="11:22:33:44:55:66",
         device_public_id="edge-abc",
-        wake_interval_sec=600,
-        firmware_version="0.1.0",
-        firmware_serial_tag="beeplan-Edge-0.1.0",
+        wake_interval_sec=3600,
+        telemetry_slot_sec=72,
+        gateway_wifi_channel=6,
+        device_type="multisensor",
+        firmware_version="0.2.0",
+        firmware_serial_tag="beeplan-Edge-0.2.0",
     )
     out = (include / "config.h").read_text(encoding="utf-8")
     assert "0x11, 0x22" in out
     assert "edge-abc" in out
-    assert "600" in out
+    assert "3600" in out
+    assert "72" in out
+    assert "6" in out

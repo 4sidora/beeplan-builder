@@ -45,7 +45,10 @@ class GatewayBuildConfig(BaseModel):
 class EdgeBuildConfig(BaseModel):
     gateway_mac: str = Field(min_length=11, max_length=17)
     device_public_id: str = Field(min_length=1, max_length=64)
-    wake_interval_sec: int = Field(default=600, ge=10, le=86400)
+    wake_interval_sec: int = Field(default=3600, ge=10, le=86400)
+    telemetry_slot_sec: int = Field(ge=0, le=3599)
+    gateway_wifi_channel: int = Field(ge=1, le=13)
+    device_type: str = Field(default="multisensor", pattern="^(multisensor|scales)$")
 
 
 class BuildRequest(BaseModel):

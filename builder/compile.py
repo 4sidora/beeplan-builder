@@ -288,7 +288,10 @@ def compile_firmware(
             work,
             gateway_mac=edge_config["gateway_mac"],
             device_public_id=edge_config["device_public_id"],
-            wake_interval_sec=int(edge_config.get("wake_interval_sec", 600)),
+            wake_interval_sec=int(edge_config.get("wake_interval_sec", 3600)),
+            telemetry_slot_sec=int(edge_config["telemetry_slot_sec"]),
+            gateway_wifi_channel=int(edge_config["gateway_wifi_channel"]),
+            device_type=edge_config.get("device_type", "multisensor"),
             firmware_version=edge_config.get("firmware_version", version_for("edge")),
             firmware_serial_tag=edge_config.get("firmware_serial_tag", serial_tag("edge")),
         )

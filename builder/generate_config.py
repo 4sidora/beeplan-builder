@@ -58,9 +58,17 @@ def generate_edge_config(
     gateway_mac: str,
     device_public_id: str,
     wake_interval_sec: int,
+    telemetry_slot_sec: int,
+    gateway_wifi_channel: int,
+    device_type: str = "multisensor",
     firmware_version: str,
     firmware_serial_tag: str,
 ) -> None:
+    device_type_code = "1" if device_type == "scales" else "0"
+    if not 1 <= int(gateway_wifi_channel) <= 13:
+        raise ValueError("gateway_wifi_channel must be 1–13")
+    if not 0 <= int(telemetry_slot_sec) <= 3599:
+        raise ValueError("telemetry_slot_sec must be 0–3599")
     render_template(
         firmware_dir / "include" / "config.h.in",
         firmware_dir / "include" / "config.h",
@@ -68,6 +76,9 @@ def generate_edge_config(
             "GATEWAY_MAC_BYTES": mac_to_byte_list(gateway_mac),
             "DEVICE_PUBLIC_ID": _escape_c_string(device_public_id),
             "WAKE_INTERVAL_SEC": str(int(wake_interval_sec)),
+            "TELEMETRY_SLOT_SEC": str(int(telemetry_slot_sec)),
+            "GATEWAY_WIFI_CHANNEL": str(int(gateway_wifi_channel)),
+            "DEVICE_TYPE": device_type_code,
             "FIRMWARE_VERSION": _escape_c_string(firmware_version),
             "FIRMWARE_SERIAL_TAG": _escape_c_string(firmware_serial_tag),
         },
