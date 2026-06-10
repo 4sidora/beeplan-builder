@@ -25,4 +25,5 @@ docker run --rm -p 9000:9000 -e BEEPLAN_BUILDER_SECRET=dev-builder-secret beepla
 | `board` | MCU | PlatformIO env | esp-web-tools `chipFamily` |
 |---------|-----|----------------|----------------------------|
 | `esp32dev` | ESP32 (classic) | `esp32dev` | `ESP32` |
+| `ttgo-t-energy` | LILYGO TTGO T-Energy T18 V3.0 | `ttgo-t-energy` | `ESP32` |
 | `esp32c3` | ESP32-C3 | `esp32c3` | `ESP32-C3` |

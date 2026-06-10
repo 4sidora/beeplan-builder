@@ -27,7 +27,7 @@ COPY beeplan-gateway/ /firmware/gateway/
 RUN cd /firmware/gateway && cp include/config.h.example include/config.h \
     && pio run -e esp32dev && pio run -e esp32c3 \
     && cd /firmware/edge && cp include/config.h.example include/config.h \
-    && pio run -e esp32dev && pio run -e esp32c3
+    && pio run -e esp32dev && pio run -e ttgo-t-energy && pio run -e esp32c3
 
 ENV BEEPLAN_ARTIFACTS_DIR=/artifacts
 ENV BEEPLAN_WORKDIR=/workdir

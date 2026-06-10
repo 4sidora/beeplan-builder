@@ -11,8 +11,8 @@ GATEWAY_TYPE = "Gateway"
 EDGE_TYPE = "Edge"
 
 # Semver: patch — любая правка прошивки; minor — крупные фичи; major — ломающие изменения.
-GATEWAY_VERSION = "0.2.0"
-EDGE_VERSION = "0.2.0"
+GATEWAY_VERSION = "0.2.6"
+EDGE_VERSION = "0.2.5"
 
 
 def profile_type(profile: str) -> str:

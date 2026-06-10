@@ -54,7 +54,10 @@ class EdgeBuildConfig(BaseModel):
 class BuildRequest(BaseModel):
     build_id: str = Field(min_length=1, max_length=64)
     profile: str = Field(pattern="^(gateway|edge)$")
-    board: str = Field(default="esp32dev", pattern="^(esp32dev|esp32c3|esp32c3-usb)$")
+    board: str = Field(
+        default="esp32dev",
+        pattern="^(esp32dev|esp32c3|esp32c3-usb|ttgo-t-energy)$",
+    )
     gateway_config: GatewayBuildConfig | None = None
     edge_config: EdgeBuildConfig | None = None
 

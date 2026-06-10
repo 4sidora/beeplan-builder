@@ -21,8 +21,14 @@ def test_esp32c3_profile() -> None:
     assert p.flash_parts[0] == ("bootloader.bin", 0x0)
 
 
+def test_ttgo_t_energy_profile() -> None:
+    p = get_board_profile("ttgo-t-energy")
+    assert p.chip_family == "ESP32"
+    assert p.env == "ttgo-t-energy"
+
+
 def test_all_boards_registered() -> None:
-    assert set(BOARD_PROFILES) == {"esp32dev", "esp32c3", "esp32c3-usb"}
+    assert set(BOARD_PROFILES) == {"esp32dev", "esp32c3", "esp32c3-usb", "ttgo-t-energy"}
 
 
 def test_esp32c3_usb_profile() -> None:
