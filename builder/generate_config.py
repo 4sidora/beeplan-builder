@@ -37,6 +37,7 @@ def generate_gateway_config(
     ingest_token: str,
     firmware_version: str,
     firmware_serial_tag: str,
+    debug_serial: bool = True,
 ) -> None:
     render_template(
         firmware_dir / "include" / "config.h.in",
@@ -48,6 +49,7 @@ def generate_gateway_config(
             "INGEST_TOKEN": _escape_c_string(ingest_token),
             "FIRMWARE_VERSION": _escape_c_string(firmware_version),
             "FIRMWARE_SERIAL_TAG": _escape_c_string(firmware_serial_tag),
+            "BEEPLAN_DEBUG": "1" if debug_serial else "0",
         },
     )
 
@@ -63,6 +65,7 @@ def generate_edge_config(
     device_type: str = "multisensor",
     firmware_version: str,
     firmware_serial_tag: str,
+    debug_serial: bool = True,
 ) -> None:
     device_type_code = "1" if device_type == "scales" else "0"
     if not 1 <= int(gateway_wifi_channel) <= 13:
@@ -81,5 +84,6 @@ def generate_edge_config(
             "DEVICE_TYPE": device_type_code,
             "FIRMWARE_VERSION": _escape_c_string(firmware_version),
             "FIRMWARE_SERIAL_TAG": _escape_c_string(firmware_serial_tag),
+            "BEEPLAN_DEBUG": "1" if debug_serial else "0",
         },
     )

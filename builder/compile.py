@@ -280,6 +280,7 @@ def compile_firmware(
             ingest_token=gateway_config["ingest_token"],
             firmware_version=gateway_config.get("firmware_version", version_for("gateway")),
             firmware_serial_tag=gateway_config.get("firmware_serial_tag", serial_tag("gateway")),
+            debug_serial=bool(gateway_config.get("debug_serial", True)),
         )
     elif profile == "edge":
         if edge_config is None:
@@ -294,6 +295,7 @@ def compile_firmware(
             device_type=edge_config.get("device_type", "multisensor"),
             firmware_version=edge_config.get("firmware_version", version_for("edge")),
             firmware_serial_tag=edge_config.get("firmware_serial_tag", serial_tag("edge")),
+            debug_serial=bool(edge_config.get("debug_serial", True)),
         )
     else:
         raise ValueError(f"Unknown profile: {profile}")
