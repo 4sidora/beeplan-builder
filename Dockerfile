@@ -23,11 +23,11 @@ COPY beeplan-builder/builder/ ./builder/
 COPY beeplan-edge/ /firmware/edge/
 COPY beeplan-gateway/ /firmware/gateway/
 
-# Pre-fetch ESP32 / ESP32-C3 toolchains (avoids PyPI timeouts during user builds)
+# Pre-fetch ESP32 toolchains (avoids PyPI timeouts during user builds)
 RUN cd /firmware/gateway && cp include/config.h.example include/config.h \
-    && pio run -e esp32dev && pio run -e esp32c3 \
+    && pio run -e ttgo-t-call-v14 \
     && cd /firmware/edge && cp include/config.h.example include/config.h \
-    && pio run -e esp32dev && pio run -e ttgo-t-energy && pio run -e esp32c3
+    && pio run -e ttgo-t-energy
 
 ENV BEEPLAN_ARTIFACTS_DIR=/artifacts
 ENV BEEPLAN_WORKDIR=/workdir

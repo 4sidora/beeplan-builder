@@ -10,12 +10,10 @@ pip install --no-cache-dir cryptography ecdsa bitstring reedsolo intelhex
 
 cd /firmware/gateway
 cp -f include/config.h.example include/config.h
-pio run -e esp32dev
-pio run -e esp32c3
+pio run -e ttgo-t-call-v14
 
 cd /firmware/edge
 cp -f include/config.h.example include/config.h
-pio run -e esp32dev
-pio run -e esp32c3
+pio run -e ttgo-t-energy
 
 echo "Toolchain warmup complete."

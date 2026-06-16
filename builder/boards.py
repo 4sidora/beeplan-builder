@@ -4,7 +4,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-SUPPORTED_BOARDS = frozenset({"esp32dev", "esp32c3", "esp32c3-usb", "ttgo-t-energy"})
+SUPPORTED_BOARDS = frozenset({"ttgo-t-energy", "ttgo-t-call-v14"})
+
+_ESP32_FLASH_PARTS: tuple[tuple[str, int], ...] = (
+    ("bootloader.bin", 0x1000),
+    ("partitions.bin", 0x8000),
+    ("boot_app0.bin", 0xE000),
+    ("firmware.bin", 0x10000),
+)
 
 
 @dataclass(frozen=True)
@@ -15,43 +22,15 @@ class BoardProfile:
 
 
 BOARD_PROFILES: dict[str, BoardProfile] = {
-    "esp32dev": BoardProfile(
-        env="esp32dev",
+    "ttgo-t-call-v14": BoardProfile(
+        env="ttgo-t-call-v14",
         chip_family="ESP32",
-        flash_parts=(
-            ("bootloader.bin", 0x1000),
-            ("partitions.bin", 0x8000),
-            ("boot_app0.bin", 0xE000),
-            ("firmware.bin", 0x10000),
-        ),
+        flash_parts=_ESP32_FLASH_PARTS,
     ),
     "ttgo-t-energy": BoardProfile(
         env="ttgo-t-energy",
         chip_family="ESP32",
-        flash_parts=(
-            ("bootloader.bin", 0x1000),
-            ("partitions.bin", 0x8000),
-            ("boot_app0.bin", 0xE000),
-            ("firmware.bin", 0x10000),
-        ),
-    ),
-    "esp32c3": BoardProfile(
-        env="esp32c3",
-        chip_family="ESP32-C3",
-        flash_parts=(
-            ("bootloader.bin", 0x0),
-            ("partitions.bin", 0x8000),
-            ("firmware.bin", 0x10000),
-        ),
-    ),
-    "esp32c3-usb": BoardProfile(
-        env="esp32c3-usb",
-        chip_family="ESP32-C3",
-        flash_parts=(
-            ("bootloader.bin", 0x0),
-            ("partitions.bin", 0x8000),
-            ("firmware.bin", 0x10000),
-        ),
+        flash_parts=_ESP32_FLASH_PARTS,
     ),
 }
 

@@ -22,8 +22,9 @@ docker run --rm -p 9000:9000 -e BEEPLAN_BUILDER_SECRET=dev-builder-secret beepla
 
 ## Поддерживаемые платы (`board`)
 
-| `board` | MCU | PlatformIO env | esp-web-tools `chipFamily` |
-|---------|-----|----------------|----------------------------|
-| `esp32dev` | ESP32 (classic) | `esp32dev` | `ESP32` |
-| `ttgo-t-energy` | LILYGO TTGO T-Energy T18 V3.0 | `ttgo-t-energy` | `ESP32` |
-| `esp32c3` | ESP32-C3 | `esp32c3` | `ESP32-C3` |
+| `board` | Роль | PlatformIO env | Статус |
+|---------|------|----------------|--------|
+| `ttgo-t-call-v14` | Gateway | `ttgo-t-call-v14` | ✅ сборка |
+| `ttgo-t-energy` | Edge | `ttgo-t-energy` | ✅ сборка |
+
+В веб-мастере также показаны платы «Скоро» (без сборки): кастомный ESP32 Wi-Fi, LILYGO T-SIM7600, T-Energy-S3, T7 S3.
