@@ -274,13 +274,18 @@ def compile_firmware(
             raise ValueError("gateway_config required")
         generate_gateway_config(
             work,
-            wifi_ssid=gateway_config["wifi_ssid"],
-            wifi_password=gateway_config["wifi_password"],
+            uplink_mode=gateway_config.get("uplink_mode", "wifi"),
+            wifi_ssid=gateway_config.get("wifi_ssid", ""),
+            wifi_password=gateway_config.get("wifi_password", ""),
             api_base_url=gateway_config["api_base_url"],
             ingest_token=gateway_config["ingest_token"],
             firmware_version=gateway_config.get("firmware_version", version_for("gateway")),
             firmware_serial_tag=gateway_config.get("firmware_serial_tag", serial_tag("gateway")),
             debug_serial=bool(gateway_config.get("debug_serial", True)),
+            gateway_wifi_channel=int(gateway_config.get("gateway_wifi_channel", 6)),
+            cellular_apn=gateway_config.get("cellular_apn", ""),
+            cellular_user=gateway_config.get("cellular_user", ""),
+            cellular_pass=gateway_config.get("cellular_pass", ""),
         )
     elif profile == "edge":
         if edge_config is None:
@@ -290,7 +295,6 @@ def compile_firmware(
             gateway_mac=edge_config["gateway_mac"],
             device_public_id=edge_config["device_public_id"],
             wake_interval_sec=int(edge_config.get("wake_interval_sec", 3600)),
-            telemetry_slot_sec=int(edge_config["telemetry_slot_sec"]),
             gateway_wifi_channel=int(edge_config["gateway_wifi_channel"]),
             device_type=edge_config.get("device_type", "multisensor"),
             firmware_version=edge_config.get("firmware_version", version_for("edge")),

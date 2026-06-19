@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from builder.compile import DEFAULT_WORKDIR, BuildPhase, BuildProgressUpdate, compile_firmware
 
@@ -35,18 +35,33 @@ class BuildStatus(str, Enum):
 
 
 class GatewayBuildConfig(BaseModel):
-    wifi_ssid: str = Field(min_length=1, max_length=64)
-    wifi_password: str = Field(min_length=1, max_length=128)
+    uplink_mode: str = Field(default="wifi", pattern="^(wifi|cellular)$")
+    wifi_ssid: str = Field(default="", max_length=64)
+    wifi_password: str = Field(default="", max_length=128)
     api_base_url: str = Field(min_length=1, max_length=256)
     ingest_token: str = Field(min_length=1, max_length=64)
     firmware_version: str = Field(default="0.1.0", max_length=32)
+    firmware_serial_tag: str = Field(default="", max_length=64)
+    debug_serial: bool = True
+    gateway_wifi_channel: int = Field(default=6, ge=1, le=13)
+    cellular_apn: str = Field(default="", max_length=64)
+    cellular_user: str = Field(default="", max_length=64)
+    cellular_pass: str = Field(default="", max_length=64)
+
+    @model_validator(mode="after")
+    def validate_uplink_fields(self) -> "GatewayBuildConfig":
+        if self.uplink_mode == "wifi":
+            if not self.wifi_ssid or not self.wifi_password:
+                raise ValueError("wifi_ssid and wifi_password required for wifi uplink")
+        elif not self.cellular_apn:
+            raise ValueError("cellular_apn required for cellular uplink")
+        return self
 
 
 class EdgeBuildConfig(BaseModel):
     gateway_mac: str = Field(min_length=11, max_length=17)
     device_public_id: str = Field(min_length=1, max_length=64)
     wake_interval_sec: int = Field(default=3600, ge=10, le=86400)
-    telemetry_slot_sec: int = Field(ge=0, le=3599)
     gateway_wifi_channel: int = Field(ge=1, le=13)
     device_type: str = Field(default="multisensor", pattern="^(multisensor|scales)$")
 
