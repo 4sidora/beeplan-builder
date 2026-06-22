@@ -81,11 +81,27 @@ def generate_edge_config(
     wake_interval_sec: int,
     gateway_wifi_channel: int,
     device_type: str = "multisensor",
+    hx711_dout_pin: int = 1,
+    hx711_sck_pin: int = 3,
+    ds18b20_pin: int = 4,
+    weight_mode: str = "full",
     firmware_version: str,
     firmware_serial_tag: str,
     debug_serial: bool = True,
 ) -> None:
     device_type_code = "1" if device_type == "scales" else "0"
+    if device_type == "scales":
+        for pin_name, pin in (("hx711_dout_pin", hx711_dout_pin), ("hx711_sck_pin", hx711_sck_pin),
+                              ("ds18b20_pin", ds18b20_pin)):
+            if not 0 <= int(pin) <= 21:
+                raise ValueError(f"{pin_name} must be 0–21")
+        if weight_mode not in ("full", "half"):
+            raise ValueError("weight_mode must be full or half")
+    else:
+        hx711_dout_pin = 0
+        hx711_sck_pin = 0
+        ds18b20_pin = 0
+        weight_mode = "full"
     if not 1 <= int(gateway_wifi_channel) <= 13:
         raise ValueError("gateway_wifi_channel must be 1–13")
     render_template(
@@ -97,6 +113,10 @@ def generate_edge_config(
             "WAKE_INTERVAL_SEC": str(int(wake_interval_sec)),
             "GATEWAY_WIFI_CHANNEL": str(int(gateway_wifi_channel)),
             "DEVICE_TYPE": device_type_code,
+            "HX711_DOUT_PIN": str(int(hx711_dout_pin)),
+            "HX711_SCK_PIN": str(int(hx711_sck_pin)),
+            "DS18B20_PIN": str(int(ds18b20_pin)),
+            "WEIGHT_MODE_HALF": "1" if weight_mode == "half" else "0",
             "FIRMWARE_VERSION": _escape_c_string(firmware_version),
             "FIRMWARE_SERIAL_TAG": _escape_c_string(firmware_serial_tag),
             "BEEPLAN_DEBUG": "1" if debug_serial else "0",

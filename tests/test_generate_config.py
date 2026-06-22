@@ -60,3 +60,34 @@ def test_generate_edge_config(tmp_path: Path) -> None:
     assert "edge-abc" in out
     assert "3600" in out
     assert "6" in out
+    assert "DT=0" in out
+
+
+def test_generate_edge_config_scales(tmp_path: Path) -> None:
+    include = tmp_path / "include"
+    include.mkdir()
+    (include / "config.h.in").write_text(
+        "DT={{DEVICE_TYPE}}\nDOUT={{HX711_DOUT_PIN}}\nSCK={{HX711_SCK_PIN}}\n"
+        "T={{DS18B20_PIN}}\nWM={{WEIGHT_MODE_HALF}}\n",
+        encoding="utf-8",
+    )
+    generate_edge_config(
+        tmp_path,
+        gateway_mac="11:22:33:44:55:66",
+        device_public_id="edge-scale",
+        wake_interval_sec=1800,
+        gateway_wifi_channel=2,
+        device_type="scales",
+        hx711_dout_pin=1,
+        hx711_sck_pin=3,
+        ds18b20_pin=4,
+        weight_mode="half",
+        firmware_version="0.3.0",
+        firmware_serial_tag="beeplan-Edge-0.3.0",
+    )
+    out = (include / "config.h").read_text(encoding="utf-8")
+    assert "DT=1" in out
+    assert "DOUT=1" in out
+    assert "SCK=3" in out
+    assert "T=4" in out
+    assert "WM=1" in out
